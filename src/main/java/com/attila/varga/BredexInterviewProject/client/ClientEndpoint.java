@@ -15,8 +15,8 @@ public class ClientEndpoint {
     private final ClientService clientService;
 
     @PostMapping ResponseEntity<String> createClient(@RequestBody ClientRequest clientRequest) {
-        String id = clientService.createClient(clientRequest);
+        String uuid = clientService.createClient(clientRequest);
 
-        return ResponseEntity.ok().body(id);
+        return ResponseEntity.ok().body(uuid);
     }
 }
