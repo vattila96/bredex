@@ -1,7 +1,6 @@
 package com.attila.varga.BredexInterviewProject.client;
 
 import lombok.Data;
-
 import javax.persistence.*;
 
 @Entity
