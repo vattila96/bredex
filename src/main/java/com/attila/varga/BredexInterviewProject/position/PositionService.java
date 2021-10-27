@@ -5,7 +5,6 @@ import com.attila.varga.BredexInterviewProject.client.ClientRepository;
 import com.attila.varga.BredexInterviewProject.common.ValidationException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -19,21 +18,9 @@ public class PositionService {
     private final PositionRepository positionRepository;
 
     public String createPosition(String apiKey, PositionRequest positionRequest) {
-        boolean isApiKeyValid = false;
-
-        for (ClientEntity clientEntity : clientRepository.findAll()) {
-            if (Objects.equals(clientEntity.getUuid(), apiKey)) {
-                isApiKeyValid = true;
-                break;
-            }
-        }
-
-        if (!isApiKeyValid) throw new ValidationException("invalid api key");
-        if (positionRequest.getName().length() > 50) throw new ValidationException("position name max 50 characters");
-        if (positionRequest.getLocation().length() > 50) throw new ValidationException("location max 50 characters");
+        validatePositionRequest(apiKey, positionRequest);
 
         String url = "jobs.hu/" + generatePositionUrl();
-
         PositionEntity positionEntity = new PositionEntity(positionRequest.getName(), positionRequest.getLocation(), url);
         positionRepository.save(positionEntity);
 
@@ -55,6 +42,20 @@ public class PositionService {
     }
 
     List<String> getPositions(String apiKey, PositionRequest positionRequest) {
+        validatePositionRequest(apiKey, positionRequest);
+        List<String> urls = new ArrayList<>();
+
+        for (PositionEntity positionEntity : positionRepository.findAll()) {
+            if (positionEntity.getName().toLowerCase().contains(positionRequest.getName())
+                    && positionEntity.getLocation().toLowerCase().contains(positionRequest.getLocation())) {
+                urls.add(positionEntity.getUrl());
+            }
+        }
+
+        return urls;
+    }
+
+    public void validatePositionRequest(String apiKey, PositionRequest positionRequest) {
         boolean isApiKeyValid = false;
 
         for (ClientEntity clientEntity : clientRepository.findAll()) {
@@ -67,16 +68,5 @@ public class PositionService {
         if (!isApiKeyValid) throw new ValidationException("invalid api key");
         if (positionRequest.getName().length() > 50) throw new ValidationException("position name max 50 characters");
         if (positionRequest.getLocation().length() > 50) throw new ValidationException("location max 50 characters");
-
-        List<String> urls = new ArrayList<>();
-
-        for (PositionEntity positionEntity : positionRepository.findAll()) {
-            if (positionEntity.getName().toLowerCase().contains(positionRequest.getName())
-                    && positionEntity.getLocation().toLowerCase().contains(positionRequest.getLocation())) {
-                urls.add(positionEntity.getUrl());
-            }
-        }
-
-        return urls;
     }
 }
